@@ -149,7 +149,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // First, pick the base URI to use depending on whether we are
         // currently filtering.
         Intent intent = getActivity().getIntent();
-        if (intent == null) {
+        if (intent == null || intent.getData() == null) {
             return null;
         }
 
