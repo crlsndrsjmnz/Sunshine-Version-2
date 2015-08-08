@@ -20,12 +20,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity
+        implements ForecastFragment.Callback {
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -118,16 +120,22 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onResume() {
-        Log.v(LOG_TAG, "in onResume");
         super.onResume();
-        // The activity has become visible (it is now "resumed").
-
-        if (mLocation.compareTo(Utility.getPreferredLocation(this)) != 0) {
+        String location = Utility.getPreferredLocation(this);
+        // update the location in our second pane using the fragment manager
+        if (location != null && !location.equals(mLocation)) {
             ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
-            ff.onLocationChanged();
-            mLocation = Utility.getPreferredLocation(this);
-        }
+            if (null != ff) {
+                ff.onLocationChanged();
+            }
 
+            DetailFragment df = (DetailFragment) getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+            if (null != df) {
+                df.onLocationChanged(location);
+            }
+
+            mLocation = location;
+        }
     }
 
     @Override
@@ -149,5 +157,25 @@ public class MainActivity extends ActionBarActivity {
         Log.v(LOG_TAG, "in onDestroy");
         super.onDestroy();
         // The activity is about to be destroyed.
+    }
+
+
+    @Override
+    public void onItemSelected(Uri dateUri) {
+        DetailFragment df = DetailFragment.newInstance(dateUri);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+
+        if (mTwoPane) {
+            ft.replace(R.id.weather_detail_container, df, DETAILFRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class);
+
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.FORECAST_URI, dateUri);
+            intent.putExtras(args);
+
+            startActivity(intent);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.example.android.sunshine.app;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -27,6 +28,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
  */
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final String FORECAST_URI = "URI";
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
     // must change.
     static final int COL_WEATHER_ID = 0;
@@ -69,6 +71,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             WeatherContract.WeatherEntry.COLUMN_DEGREES
 
     };
+    Uri mUri;
     TextView mTvDateToday;
     TextView mTvDate;
     TextView mTvHigh;
@@ -85,6 +88,16 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         setHasOptionsMenu(true);
     }
 
+    public static DetailFragment newInstance(Uri uri) {
+        DetailFragment f = new DetailFragment();
+
+        Bundle args = new Bundle();
+        args.putParcelable(FORECAST_URI, uri);
+        f.setArguments(args);
+
+        return f;
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         // Prepare the loader.  Either re-connect with an existing one,
@@ -96,6 +109,16 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if (savedInstanceState != null) {
+            mUri = savedInstanceState.getParcelable(FORECAST_URI);
+            getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
+        } else {
+            Bundle arguments = getArguments();
+            if (arguments != null) {
+                mUri = arguments.getParcelable(FORECAST_URI);
+            }
+        }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
@@ -114,6 +137,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(FORECAST_URI, mUri);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
         inflater.inflate(R.menu.detailfragment, menu);
@@ -129,8 +158,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // like when the user selects a new piece of data they might like to share.
         if (mForecastStr != null) {
             mShareActionProvider.setShareIntent(createShareForecastIntent());
-        } else {
-            Log.d(LOG_TAG, "mForecastStr is null?");
         }
     }
 
@@ -148,17 +175,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // sample only has one Loader, so we don't care about the ID.
         // First, pick the base URI to use depending on whether we are
         // currently filtering.
-        Intent intent = getActivity().getIntent();
-        if (intent == null || intent.getData() == null) {
-            return null;
+
+        if (mUri != null) {
+            return new CursorLoader(getActivity(),
+                    mUri,
+                    FORECAST_COLUMNS,
+                    null,
+                    null,
+                    null);
         }
 
-        return new CursorLoader(getActivity(),
-                intent.getData(),
-                FORECAST_COLUMNS,
-                null,
-                null,
-                null);
+        return null;
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -209,34 +236,16 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // This is called when the last Cursor provided to onLoadFinished()
         // above is about to be closed.  We need to make sure we are no
         // longer using it.
-        mTvDateToday.setText("");
     }
 
-    /**
-     * Prepare the weather high/lows for presentation.
-     */
-//        private String formatHighLows(double high, double low) {
-//            boolean isMetric = Utility.isMetric(getActivity());
-//            String highLowStr = Utility.formatTemperature(high, isMetric) + "/" + Utility.formatTemperature(low, isMetric);
-//            return highLowStr;
-//        }
-
-        /*
-            This is ported from FetchWeatherTask --- but now we go straight from the cursor to the
-            string.
-         */
-//        private String convertCursorRowToUXFormat(Cursor cursor) {
-//
-//            if (cursor.moveToNext()) {
-//                String highAndLow = formatHighLows(
-//                        cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP),
-//                        cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP));
-//
-//                return Utility.formatDate(cursor.getLong(ForecastFragment.COL_WEATHER_DATE)) +
-//                        " - " + cursor.getString(ForecastFragment.COL_WEATHER_DESC) +
-//                        " - " + highAndLow;
-//            } else {
-//                return "";
-//            }
-//        }
+    void onLocationChanged(String newLocation) {
+        // replace the uri, since the location has changed
+        Uri uri = mUri;
+        if (null != uri) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
+        }
+    }
 }

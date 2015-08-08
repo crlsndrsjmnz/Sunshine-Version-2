@@ -24,13 +24,21 @@ import android.view.MenuItem;
 
 public class DetailActivity extends ActionBarActivity {
 
+    public static final String DETAILFRAGMENT_TAG = "DFTAG";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        DetailFragment detailFragment;
+
         if (savedInstanceState == null) {
+
+            detailFragment = new DetailFragment();
+            detailFragment.setArguments(getIntent().getExtras());
+
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.weather_detail_container, new DetailFragment())
+                    .add(R.id.weather_detail_container, detailFragment, DETAILFRAGMENT_TAG)
                     .commit();
         }
     }
