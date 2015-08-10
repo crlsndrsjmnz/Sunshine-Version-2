@@ -16,13 +16,17 @@
             android:id="@+id/list_item_date_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tomorrow" />
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="@android:color/black"
+            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/list_item_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="June 24" />
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="@color/grey_text"
+            android:textSize="16sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,13 +44,17 @@
                     android:id="@+id/list_item_high_textview"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="22°" />
+                    android:fontFamily="sans-serif-light"
+                    android:textColor="@android:color/black"
+                    android:textSize="96sp" />
 
                 <TextView
                     android:id="@+id/list_item_low_textview"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8°" />
+                    android:fontFamily="sans-serif-light"
+                    android:textColor="@color/grey_text"
+                    android:textSize="48sp" />
 
             </LinearLayout>
 
@@ -66,7 +74,9 @@
                     android:id="@+id/list_item_forecast_textview"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Clear" />
+                    android:fontFamily="sans-serif-condensed"
+                    android:textAppearance="?android:textAppearanceLarge"
+                    android:textColor="@color/grey_text" />
 
             </LinearLayout>
 
@@ -76,19 +86,27 @@
             android:id="@+id/list_item_humidity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="48%" />
+            android:fontFamily="sans-serif-light"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@android:color/black" />
 
         <TextView
             android:id="@+id/list_item_wind"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="6 km/h NW" />
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-light"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@android:color/black" />
 
         <TextView
             android:id="@+id/list_item_pressure"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1014" />
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-light"
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@android:color/black" />
 
     </LinearLayout>
 </ScrollView>

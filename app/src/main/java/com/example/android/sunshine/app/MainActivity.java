@@ -57,6 +57,12 @@ public class MainActivity extends ActionBarActivity
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
+        }
+
+        ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+        if (null != ff) {
+            ff.setSinglePaneLayout(!mTwoPane);
         }
     }
 
