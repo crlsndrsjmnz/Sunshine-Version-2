@@ -200,8 +200,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             mTvDate.setText(Utility.getFormattedMonthDay(context, date));
 
             boolean isMetric = Utility.isMetric(context);
-            mTvHigh.setText(Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MAX_TEMP), isMetric));
-            mTvLow.setText(Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MIN_TEMP), isMetric));
+            String metricDesc = isMetric ? " Celsius" : " Fahrenheit";
+
+            String tvHighText = Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
+            mTvHigh.setText(tvHighText);
+            mTvHigh.setContentDescription(tvHighText + metricDesc);
+
+            String tvLowText = Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
+            mTvLow.setText(tvLowText);
+            mTvLow.setContentDescription(tvLowText + metricDesc);
 
             mForecastDescription.setText(data.getString(COL_WEATHER_SHORT_DESC));
 
@@ -223,6 +230,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
             int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
             mIcon.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+            mIcon.setContentDescription(data.getString(COL_WEATHER_SHORT_DESC) + " icon");
         }
 
         if (mShareActionProvider != null) {

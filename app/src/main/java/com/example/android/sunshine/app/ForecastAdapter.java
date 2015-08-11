@@ -74,16 +74,21 @@ public class ForecastAdapter extends CursorAdapter {
             viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
         else
             viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
+        viewHolder.iconView.setContentDescription(cursor.getString(ForecastFragment.COL_WEATHER_DESC) + " icon");
 
         viewHolder.dateView.setText(Utility.getFriendlyDayString(context, cursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
         viewHolder.descriptionView.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
 
         boolean isMetric = Utility.isMetric(context);
+        String metricDesc = isMetric ? " Celsius" : " Fahrenheit";
 
-        viewHolder.highTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), isMetric));
+        String tvHighText = Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), isMetric);
+        viewHolder.highTempView.setText(tvHighText);
+        viewHolder.highTempView.setContentDescription(tvHighText + metricDesc);
+
+        String tvLowText = Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), isMetric);
         viewHolder.lowTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), isMetric));
-
-
+        viewHolder.lowTempView.setContentDescription(tvLowText + metricDesc);
     }
 
     /**
