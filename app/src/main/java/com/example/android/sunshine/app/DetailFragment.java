@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -18,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -81,6 +83,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     TextView mTvWind;
     TextView mTvPressure;
     ImageView mIcon;
+    WindDirectionView mWindDirectionView;
+
     ShareActionProvider mShareActionProvider;
     private String mForecastStr;
 
@@ -122,6 +126,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
+        //WindDirectionView windView = new WindDirectionView(getActivity());
+
         mTvDateToday = ((TextView) rootView.findViewById(R.id.list_item_date_description));
         mTvDate = ((TextView) rootView.findViewById(R.id.list_item_date));
         mTvHigh = ((TextView) rootView.findViewById(R.id.list_item_high_textview));
@@ -130,8 +136,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mTvHumidity = ((TextView) rootView.findViewById(R.id.list_item_humidity));
         mTvWind = ((TextView) rootView.findViewById(R.id.list_item_wind));
         mTvPressure = ((TextView) rootView.findViewById(R.id.list_item_pressure));
+        mWindDirectionView = (WindDirectionView) rootView.findViewById(R.id.list_item_wind_icon);
 
         mIcon = ((ImageView) rootView.findViewById(R.id.list_item_icon));
+
+        //getActivity().setContentView(mCustomDrawableView);
 
         return rootView;
     }
@@ -217,11 +226,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                             R.string.format_humidity,
                             data.getDouble(COL_WEATHER_HUMIDITY)));
 
+            float windDegrees = data.getFloat(COL_WEATHER_WIND_DEGREES);
             mTvWind.setText(
                     Utility.getFormattedWind(
                             context,
                             data.getFloat(COL_WEATHER_WIND_SPEED),
-                            data.getFloat(COL_WEATHER_WIND_DEGREES)));
+                            windDegrees));
+
+            if (Build.VERSION.SDK_INT < 11) {
+                RotateAnimation animation = new RotateAnimation(0, windDegrees);
+                animation.setDuration(100);
+                animation.setFillAfter(true);
+                mWindDirectionView.startAnimation(animation);
+            } else {
+                mWindDirectionView.setRotation(windDegrees);
+            }
 
             mTvPressure.setText(
                     context.getString(
