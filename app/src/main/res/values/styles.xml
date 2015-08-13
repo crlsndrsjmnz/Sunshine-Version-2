@@ -17,7 +17,6 @@
         <item name="logo">@drawable/ic_logo</item>
     </style>
 
-
     <!-- Settings activity theme. -->
     <style name="SettingsTheme" parent="AppTheme"></style>
 

@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,6 +20,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -86,6 +89,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     WindDirectionView mWindDirectionView;
 
     ShareActionProvider mShareActionProvider;
+    Context mContext;
     private String mForecastStr;
 
     public DetailFragment() {
@@ -100,6 +104,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         f.setArguments(args);
 
         return f;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mContext = activity;
     }
 
     @Override
@@ -186,7 +196,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // currently filtering.
 
         if (mUri != null) {
-            return new CursorLoader(getActivity(),
+            return new CursorLoader(mContext,
                     mUri,
                     FORECAST_COLUMNS,
                     null,
@@ -201,35 +211,38 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
         //mForecastStr = convertCursorRowToUXFormat(data);
-        Context context = getActivity();
 
         if (data != null && data.moveToNext()) {
             long date = data.getLong(COL_WEATHER_DATE);
-            mTvDateToday.setText(Utility.getDayName(context, date));
-            mTvDate.setText(Utility.getFormattedMonthDay(context, date));
+            mTvDateToday.setText(Utility.getDayName(mContext, date));
+            mTvDate.setText(Utility.getFormattedMonthDay(mContext, date));
+            String dateString = Utility.formatDate(date);
 
-            boolean isMetric = Utility.isMetric(context);
+            boolean isMetric = Utility.isMetric(mContext);
             String metricDesc = isMetric ? " Celsius" : " Fahrenheit";
 
-            String tvHighText = Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
+            String tvHighText = Utility.formatTemperature(mContext, data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
             mTvHigh.setText(tvHighText);
             mTvHigh.setContentDescription(tvHighText + metricDesc);
 
-            String tvLowText = Utility.formatTemperature(context, data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
+            String tvLowText = Utility.formatTemperature(mContext, data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
             mTvLow.setText(tvLowText);
             mTvLow.setContentDescription(tvLowText + metricDesc);
 
-            mForecastDescription.setText(data.getString(COL_WEATHER_SHORT_DESC));
+            String weatherDescription = data.getString(COL_WEATHER_SHORT_DESC);
+            mForecastDescription.setText(weatherDescription);
+
+            mForecastStr = String.format("%s - %s - %s/%s", dateString, weatherDescription, tvHighText, tvLowText);
 
             mTvHumidity.setText(
-                    context.getString(
+                    mContext.getString(
                             R.string.format_humidity,
                             data.getDouble(COL_WEATHER_HUMIDITY)));
 
             float windDegrees = data.getFloat(COL_WEATHER_WIND_DEGREES);
             mTvWind.setText(
                     Utility.getFormattedWind(
-                            context,
+                            mContext,
                             data.getFloat(COL_WEATHER_WIND_SPEED),
                             windDegrees));
 
@@ -242,8 +255,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 mWindDirectionView.setRotation(windDegrees);
             }
 
+            AccessibilityManager accessibilityManager = (AccessibilityManager) mContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
+            mWindDirectionView.setWindSpeedDirection(Utility.getWindDirection(windDegrees));
+
+            if (accessibilityManager.isEnabled()) {
+                mWindDirectionView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
+            }
+
             mTvPressure.setText(
-                    context.getString(
+                    mContext.getString(
                             R.string.format_pressure,
                             data.getDouble(COL_WEATHER_PRESSURE)));
 

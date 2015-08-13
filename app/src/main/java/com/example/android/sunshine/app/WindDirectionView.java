@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
 
 /**
  * Created by jimeneca on 2015/08/12.
@@ -17,6 +18,7 @@ public class WindDirectionView extends View {
 
     Paint mPaint;
     Bitmap mBitmap;
+    String mWindSpeedDir;
 
     public WindDirectionView(Context context) {
         super(context);
@@ -31,6 +33,10 @@ public class WindDirectionView extends View {
     public WindDirectionView(Context context, AttributeSet attrs, int defaultStyle) {
         super(context, attrs, defaultStyle);
         init();
+    }
+
+    public void setWindSpeedDirection(String windSpeedDir) {
+        this.mWindSpeedDir = windSpeedDir;
     }
 
     private void init() {
@@ -64,4 +70,10 @@ public class WindDirectionView extends View {
         canvas.drawBitmap(mBitmap, 0, 0, mPaint);
     }
 
+    @Override
+    public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
+        super.dispatchPopulateAccessibilityEvent(event);
+        event.getText().add(mWindSpeedDir);
+        return true;
+    }
 }
