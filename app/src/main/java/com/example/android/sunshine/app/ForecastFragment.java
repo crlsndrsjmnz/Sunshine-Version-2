@@ -16,6 +16,7 @@
 package com.example.android.sunshine.app;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +33,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
@@ -54,6 +57,7 @@ public class ForecastFragment extends Fragment
     static final int COL_WEATHER_CONDITION_ID = 6;
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
+
     private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
     private static final int WEATHER_LOADER_ID = 0;
     private static final String[] FORECAST_COLUMNS = {
@@ -120,6 +124,11 @@ public class ForecastFragment extends Fragment
             updateWeather();
             return true;
         }
+        if (id == R.id.action_map) {
+            openPreferredLocationInMap();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -231,6 +240,44 @@ public class ForecastFragment extends Fragment
             mActivity = activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
+        }
+    }
+
+    public void openPreferredLocationInMap() {
+
+        Cursor cursor;
+        String latitude;
+        String longitude;
+
+        if (mForecastAdapter != null && !mForecastAdapter.isEmpty()) {
+            cursor = (Cursor) mForecastAdapter.getItem(0);
+        } else {
+            Toast.makeText(mActivity, "Weather data not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (cursor != null) {
+            latitude = cursor.getString(COL_COORD_LAT);
+            longitude = cursor.getString(COL_COORD_LONG);
+        } else {
+            Toast.makeText(mActivity, "Weather data not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent can is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
+                .appendQueryParameter("q", latitude + "," + longitude)
+                .build();
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+
+        if (intent.resolveActivity(mActivity.getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(LOG_TAG, "Couldn't call " + latitude + "," + longitude + ", no receiving apps installed!");
         }
     }
 
