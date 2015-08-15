@@ -251,12 +251,6 @@ public class ForecastFragment extends Fragment
 
         if (mForecastAdapter != null && !mForecastAdapter.isEmpty()) {
             cursor = (Cursor) mForecastAdapter.getItem(0);
-        } else {
-            Toast.makeText(mActivity, "Weather data not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (cursor != null) {
             latitude = cursor.getString(COL_COORD_LAT);
             longitude = cursor.getString(COL_COORD_LONG);
         } else {
