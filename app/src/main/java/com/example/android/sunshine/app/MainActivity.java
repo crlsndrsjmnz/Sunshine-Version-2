@@ -26,6 +26,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 public class MainActivity extends ActionBarActivity
         implements ForecastFragment.Callback {
 
@@ -64,6 +66,8 @@ public class MainActivity extends ActionBarActivity
         if (null != ff) {
             ff.setSinglePaneLayout(!mTwoPane);
         }
+
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
