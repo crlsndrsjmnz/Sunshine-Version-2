@@ -33,6 +33,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
@@ -73,6 +74,7 @@ public class ForecastFragment extends Fragment
             WeatherContract.LocationEntry.COLUMN_COORD_LONG
     };
     Callback mCallback;
+    Activity mActivity;
     ListView mListView;
     int mListViewPosition;
     private ForecastAdapter mForecastAdapter;
@@ -129,7 +131,7 @@ public class ForecastFragment extends Fragment
             mListViewPosition = savedInstanceState.getInt(FORECAST_LIST_POSITION);
         }
 
-        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+        mForecastAdapter = new ForecastAdapter(mActivity, null, 0);
         mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -147,7 +149,7 @@ public class ForecastFragment extends Fragment
 
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
+                    String locationSetting = Utility.getPreferredLocation(mActivity);
 
                     mCallback.onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                             locationSetting, cursor.getLong(COL_WEATHER_DATE)));
@@ -175,9 +177,26 @@ public class ForecastFragment extends Fragment
     }
 
     private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-        weatherTask.execute(location);
+        //FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
+        //String location = Utility.getPreferredLocation(mActivity);
+        //weatherTask.execute(location);
+
+//        Intent intent = new Intent(mActivity, SunshineService.class);
+//        Bundle extras = new Bundle();
+//        extras.putString(SunshineService.QUERY_URI, location);
+//        intent.putExtras(extras);
+//        mActivity.startService(intent);
+
+
+//        Intent intent = new Intent(mActivity, SunshineService.AlarmReceiver.class);
+//        intent.putExtra(SunshineService.QUERY_URI, location);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+//        //calls the alarm
+//        AlarmManager alarmManager = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+//        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (5 * 1000), pendingIntent);
+
+
+        SunshineSyncAdapter.syncImmediately(mActivity);
     }
 
     @Override
@@ -191,14 +210,14 @@ public class ForecastFragment extends Fragment
         // sample only has one Loader, so we don't care about the ID.
         // First, pick the base URI to use depending on whether we are
         // currently filtering.
-        String locationSetting = Utility.getPreferredLocation(getActivity());
+        String locationSetting = Utility.getPreferredLocation(mActivity);
 
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                 locationSetting, System.currentTimeMillis());
 
-        return new CursorLoader(getActivity(),
+        return new CursorLoader(mActivity,
                 weatherForLocationUri,
                 FORECAST_COLUMNS,
                 null,
@@ -228,6 +247,7 @@ public class ForecastFragment extends Fragment
         super.onAttach(activity);
         try {
             mCallback = (Callback) activity;
+            mActivity = activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
         }
