@@ -14,7 +14,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -509,9 +512,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         Utility.formatTemperature(context, low, isMetric));
 
                 //build your notification here.
+                Resources resources = context.getResources();
+                Bitmap largeIcon = BitmapFactory.decodeResource(resources,
+                        Utility.getArtResourceForWeatherCondition(weatherId));
                 NotificationCompat.Builder mBuilder =
-                        new NotificationCompat.Builder(context)
+                        new NotificationCompat.Builder(getContext())
+                                .setColor(resources.getColor(R.color.sunshine_light_blue))
                                 .setSmallIcon(iconId)
+                                .setLargeIcon(largeIcon)
                                 .setContentTitle(title)
                                 .setContentText(contentText);
                 // Creates an explicit intent for an Activity in your app
@@ -547,12 +555,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 editor.commit();
             }
         }
-    }
-
-    public int getConnectionStatus(Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return prefs.getInt(context.getString(R.string.pref_connection_status_key),
-                Integer.parseInt(context.getString(R.string.pref_connection_status_default)));
     }
 
     public void setConnectionStatus(Context context, @LocationStatus int status) {

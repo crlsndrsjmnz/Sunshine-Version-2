@@ -17,9 +17,11 @@ package com.example.android.sunshine.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -43,7 +45,7 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
  */
 public class ForecastFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String FORECAST_LIST_POSITION = "FORECAST_LIST_POSITION";
 
@@ -112,6 +114,22 @@ public class ForecastFragment extends Fragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        PreferenceManager.getDefaultSharedPreferences(mActivity).
+                registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        PreferenceManager.getDefaultSharedPreferences(mActivity)
+                .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -146,7 +164,6 @@ public class ForecastFragment extends Fragment
         mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
         mEmptyView = (TextView) rootView.findViewById(R.id.emptyview_message);
 
         // Get a reference to the ListView, and attach this adapter to it.
@@ -281,15 +298,33 @@ public class ForecastFragment extends Fragment
     }
 
     public void setErrorMsg() {
+
         if (mEmptyView != null && mForecastAdapter.isEmpty()) {
-            int message;
-            message = R.string.no_weather;
-            if (!Utility.isNetworkAvailable(getActivity())) {
-                message = R.string.no_network;
+
+            int message = R.string.empty_forecast_no_weather;
+            @SunshineSyncAdapter.LocationStatus int status = Utility.getConnectionStatus(mActivity);
+
+            switch (status) {
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                    message = R.string.empty_forecast_server_down;
+                    break;
+                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                    message = R.string.empty_forecast_server_invalid;
+                    break;
+                default:
+                    if (!Utility.isNetworkAvailable(getActivity())) {
+                        message = R.string.empty_forecast_no_network;
+                    }
             }
 
             mEmptyView.setText(message);
         }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_connection_status_key)))
+            setErrorMsg();
     }
 
     /**

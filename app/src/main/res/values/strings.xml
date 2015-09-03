@@ -15,8 +15,10 @@
     <string name="action_settings">Settings</string>
     <string name="action_map">Map Location</string>
     <string name="action_share">Share</string>
-    <string name="no_weather">No weather information available.</string>
-    <string name="no_network">No weather information available. The network is not available to fetch weather data.</string>
+    <string name="empty_forecast_no_weather">No weather information available.</string>
+    <string name="empty_forecast_no_network">No weather information available. The network is not available to fetch weather data.</string>
+    <string name="empty_forecast_server_down">No weather information available. The server is not returning data.</string>
+    <string name="empty_forecast_server_invalid">No weather information available. The server is not returning valid data. Please check for an updated version of Sunshine.</string>
 
     <!-- Menu label to fetch updated weather info from the server -->
     <string name="action_refresh" translatable="false">Refresh</string>

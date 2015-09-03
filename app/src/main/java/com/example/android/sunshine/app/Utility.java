@@ -22,6 +22,8 @@ import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,6 +37,15 @@ public class Utility {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(context.getString(R.string.pref_location_key),
                 context.getString(R.string.pref_location_default));
+    }
+
+    @SuppressWarnings("ResourceType")
+    public static
+    @SunshineSyncAdapter.LocationStatus
+    int getConnectionStatus(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getInt(context.getString(R.string.pref_connection_status_key),
+                Integer.parseInt(context.getString(R.string.pref_connection_status_default)));
     }
 
     public static boolean isMetric(Context context) {
@@ -266,4 +277,6 @@ public class Utility {
         return activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
     }
+
+
 }
