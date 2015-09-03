@@ -264,13 +264,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public void setErrorMsg() {
-        if (mEmptyView != null) {
-            int message = 0;
-            if (!mForecastAdapter.isEmpty()) {
-                message = R.string.no_weather;
-                if (!Utility.isNetworkAvailable(getActivity()))
-                    message = R.string.no_network;
+        if (mEmptyView != null && mForecastAdapter.isEmpty()) {
+            int message;
+            message = R.string.no_weather;
+            if (!Utility.isNetworkAvailable(getActivity())) {
+                message = R.string.no_network;
             }
+
             mEmptyView.setText(message);
         }
     }
