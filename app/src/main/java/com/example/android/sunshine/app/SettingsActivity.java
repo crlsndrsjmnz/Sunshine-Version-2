@@ -62,6 +62,7 @@ public class SettingsActivity extends PreferenceActivity
                 PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), ""));
+
     }
 
     @Override
@@ -88,4 +89,5 @@ public class SettingsActivity extends PreferenceActivity
     public Intent getParentActivityIntent() {
         return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
+
 }

@@ -44,20 +44,18 @@ public class Utility {
                 .equals(context.getString(R.string.pref_units_metric));
     }
 
-    public static String formatTemperature(Context context, double temperature) {
-        // Data stored in Celsius by default.  If user prefers to see in Fahrenheit, convert
-        // the values here.
-        String suffix = "\u00B0";
-        if (!isMetric(context)) {
-            temperature = (temperature * 1.8) + 32;
+    public static String formatTemperature(Context context, double temperature, boolean isMetric) {
+        double temp;
+        if (!isMetric) {
+            temp = 9 * temperature / 5 + 32;
+        } else {
+            temp = temperature;
         }
-
-        // For presentation, assume the user doesn't care about tenths of a degree.
-        return String.format(context.getString(R.string.format_temperature), temperature);
+        return context.getString(R.string.format_temperature, temp);
     }
 
-    static String formatDate(long dateInMilliseconds) {
-        Date date = new Date(dateInMilliseconds);
+    public static String formatDate(long dateInMillis) {
+        Date date = new Date(dateInMillis);
         return DateFormat.getDateInstance().format(date);
     }
 
@@ -146,15 +144,7 @@ public class Utility {
         return monthDayString;
     }
 
-    public static String getFormattedWind(Context context, float windSpeed, float degrees) {
-        int windFormat;
-        if (Utility.isMetric(context)) {
-            windFormat = R.string.format_wind_kmh;
-        } else {
-            windFormat = R.string.format_wind_mph;
-            windSpeed = .621371192237334f * windSpeed;
-        }
-
+    public static String getWindDirection(float degrees) {
         // From wind direction in degrees, determine compass direction as a string (e.g NW)
         // You know what's fun, writing really long if/else statements with tons of possible
         // conditions.  Seriously, try it!
@@ -173,9 +163,22 @@ public class Utility {
             direction = "SW";
         } else if (degrees >= 247.5 && degrees < 292.5) {
             direction = "W";
-        } else if (degrees >= 292.5 && degrees < 337.5) {
+        } else if (degrees >= 292.5 || degrees < 22.5) {
             direction = "NW";
         }
+        return direction;
+    }
+
+    public static String getFormattedWind(Context context, float windSpeed, float degrees) {
+        int windFormat;
+        if (Utility.isMetric(context)) {
+            windFormat = R.string.format_wind_kmh;
+        } else {
+            windFormat = R.string.format_wind_mph;
+            windSpeed = .621371192237334f * windSpeed;
+        }
+        String direction = getWindDirection(degrees);
+
         return String.format(context.getString(windFormat), windSpeed, direction);
     }
 
@@ -218,7 +221,7 @@ public class Utility {
      * Helper method to provide the art resource id according to the weather condition id returned
      * by the OpenWeatherMap call.
      * @param weatherId from OpenWeatherMap API response
-     * @return resource id for the corresponding icon. -1 if no relation is found.
+     * @return resource id for the corresponding image. -1 if no relation is found.
      */
     public static int getArtResourceForWeatherCondition(int weatherId) {
         // Based on weather code data found at:
@@ -234,7 +237,7 @@ public class Utility {
         } else if (weatherId >= 520 && weatherId <= 531) {
             return R.drawable.art_rain;
         } else if (weatherId >= 600 && weatherId <= 622) {
-            return R.drawable.art_snow;
+            return R.drawable.art_rain;
         } else if (weatherId >= 701 && weatherId <= 761) {
             return R.drawable.art_fog;
         } else if (weatherId == 761 || weatherId == 781) {
