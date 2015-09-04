@@ -26,6 +26,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.data.WeatherContract;
 
 /**
@@ -210,7 +211,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
-        //mForecastStr = convertCursorRowToUXFormat(data);
 
         if (data != null && data.moveToNext()) {
             long date = data.getLong(COL_WEATHER_DATE);
@@ -223,19 +223,28 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
             String tvHighText = Utility.formatTemperature(mContext, data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
             mTvHigh.setText(tvHighText);
-            mTvHigh.setContentDescription(tvHighText + metricDesc);
+            mTvHigh.setContentDescription(getString(
+                    R.string.a11y_high_temp,
+                    tvHighText,
+                    metricDesc));
 
             String tvLowText = Utility.formatTemperature(mContext, data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
             mTvLow.setText(tvLowText);
-            mTvLow.setContentDescription(tvLowText + metricDesc);
+            mTvLow.setContentDescription(getString(
+                    R.string.a11y_low_temp,
+                    tvLowText,
+                    metricDesc));
 
             String weatherDescription = data.getString(COL_WEATHER_SHORT_DESC);
             mForecastDescription.setText(weatherDescription);
+            mForecastDescription.setContentDescription(getString(
+                    R.string.a11y_forecast,
+                    weatherDescription));
 
             mForecastStr = String.format("%s - %s - %s/%s", dateString, weatherDescription, tvHighText, tvLowText);
 
             mTvHumidity.setText(
-                    mContext.getString(
+                    getString(
                             R.string.format_humidity,
                             data.getDouble(COL_WEATHER_HUMIDITY)));
 
@@ -262,14 +271,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 mWindDirectionView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
             }
 
-            mTvPressure.setText(
-                    mContext.getString(
-                            R.string.format_pressure,
-                            data.getDouble(COL_WEATHER_PRESSURE)));
+            mTvPressure.setText(getString(
+                    R.string.format_pressure,
+                    data.getDouble(COL_WEATHER_PRESSURE)));
 
             int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
-            mIcon.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-            mIcon.setContentDescription(data.getString(COL_WEATHER_SHORT_DESC) + " icon");
+
+            //mIcon.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+            Glide.with(this)
+                    .load(Utility.getArtUrlForWeatherCondition(mContext, weatherId))
+                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                    .into(mIcon);
+
+            mIcon.setContentDescription(getString(
+                    R.string.a11y_forecast_icon,
+                    weatherDescription));
         }
 
         if (mShareActionProvider != null) {

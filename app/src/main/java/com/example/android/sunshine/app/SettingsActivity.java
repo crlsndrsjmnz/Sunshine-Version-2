@@ -17,6 +17,7 @@ package com.example.android.sunshine.app;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -24,16 +25,21 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
+import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
- * <p>
+ * <p/>
  * See <a href="http://developer.android.com/design/patterns/settings.html">
  * Android Design: Settings</a> for design guidelines and the <a
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity
-        implements Preference.OnPreferenceChangeListener {
+        implements Preference.OnPreferenceChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private final String LOG_TAG = SettingsActivity.class.getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +51,23 @@ public class SettingsActivity extends PreferenceActivity
         // updated when the preference changes.
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_iconpack_key)));
+    }
+
+    // Registers a shared preference change listener that gets notified when preferences change
+    @Override
+    protected void onResume() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    // Unregisters a shared preference change listener
+    @Override
+    protected void onPause() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
     }
 
     /**
@@ -77,11 +100,47 @@ public class SettingsActivity extends PreferenceActivity
             if (prefIndex >= 0) {
                 preference.setSummary(listPreference.getEntries()[prefIndex]);
             }
+        } else if (preference.getKey().equals(getString(R.string.pref_location_key))) {
+            updateLocationSummary(preference, value);
         } else {
-            // For other preferences, set the summary to the value's simple string representation.
             preference.setSummary(stringValue);
         }
         return true;
+    }
+
+    // This gets called after the preference is changed, which is important because we
+    // start our synchronization here
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_location_key))) {
+            Utility.resetConnectionStatus(this);
+            SunshineSyncAdapter.syncImmediately(this);
+        } else if (key.equals(getString(R.string.pref_units_key)) || key.equals(getString(R.string.pref_iconpack_key))) {
+            // units have changed. update lists of weather entries accordingly
+            getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
+        } else if (key.equals(getString(R.string.pref_connection_status_key))) {
+            Preference preference = findPreference(getString(R.string.pref_location_key));
+            updateLocationSummary(preference, Utility.getPreferredLocation(this));
+        }
+    }
+
+    public void updateLocationSummary(Preference preference, Object value) {
+        String stringValue = value.toString();
+        int formatId;
+        @SunshineSyncAdapter.LocationStatus int status = Utility.getConnectionStatus(this);
+        switch (status) {
+            case SunshineSyncAdapter.LOCATION_STATUS_OK:
+                preference.setSummary(stringValue);
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN:
+                preference.setSummary(String.format(getString(R.string.pref_location_unknown_description), stringValue));
+                break;
+            case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                preference.setSummary(String.format(getString(R.string.pref_location_error_description), stringValue));
+                break;
+            default:
+                preference.setSummary(stringValue);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)

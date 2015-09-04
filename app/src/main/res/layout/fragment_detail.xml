@@ -68,7 +68,8 @@
                 <ImageView
                     android:id="@+id/list_item_icon"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true" />
 
                 <TextView
                     android:id="@+id/list_item_forecast_textview"
@@ -110,6 +111,7 @@
                 android:layout_height="27dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
                 android:focusable="true" />
 
         </LinearLayout>

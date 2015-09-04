@@ -28,6 +28,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.DetailActivity;
 import com.example.android.sunshine.app.DetailFragment;
 import com.example.android.sunshine.app.R;
@@ -47,6 +48,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
@@ -54,10 +56,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+
     public static final int LOCATION_STATUS_OK = 0;
     public static final int LOCATION_STATUS_SERVER_DOWN = 1;
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
     public static final int LOCATION_STATUS_UNKNOWN = 3;
+    public static final int LOCATION_STATUS_INVALID = 4;
+
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[]{
@@ -84,6 +89,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
      * @param context The context used to access the account service
      */
     public static void syncImmediately(Context context) {
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ SunshineSyncAdapter.syncImmediately");
+
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -100,6 +107,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
      * @return a fake account.
      */
     public static Account getSyncAccount(Context context) {
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ SunshineSyncAdapter.getSyncAccount");
+
         // Get an instance of the Android account manager
         AccountManager accountManager =
                 (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
@@ -134,6 +143,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
      * Helper method to schedule the sync adapter periodic execution
      */
     public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ SunshineSyncAdapter.configurePeriodicSync");
+
         Account account = getSyncAccount(context);
         String authority = context.getString(R.string.content_authority);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -150,6 +161,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private static void onAccountCreated(Account newAccount, Context context) {
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ SunshineSyncAdapter.onAccountCreated");
         /*
          * Since we've created an account
          */
@@ -167,6 +179,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     public static void initializeSyncAdapter(Context context) {
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ SunshineSyncAdapter.initializeSyncAdapter");
         getSyncAccount(context);
     }
 
@@ -279,6 +292,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         // into an Object hierarchy for us.
 
         // These are the names of the JSON objects that need to be extracted.
+        final String OWM_MESSAGE_CODE = "cod";
 
         // Location information
         final String OWM_CITY = "city";
@@ -307,9 +321,26 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         final String OWM_WEATHER_ID = "id";
 
         ContentResolver contentResolver = mContext.getContentResolver();
+        int errorCode = 0;
 
         try {
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
+
+            if (forecastJson.has(OWM_MESSAGE_CODE)) {
+                errorCode = forecastJson.getInt(OWM_MESSAGE_CODE);
+
+                switch (errorCode) {
+                    case HttpURLConnection.HTTP_OK:
+                        break;
+                    case HttpURLConnection.HTTP_NOT_FOUND:
+                        setConnectionStatus(getContext(), LOCATION_STATUS_INVALID);
+                        return;
+                    default:
+                        setConnectionStatus(getContext(), LOCATION_STATUS_SERVER_DOWN);
+                        return;
+                }
+            }
+
             JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
             JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
@@ -513,8 +544,24 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 //build your notification here.
                 Resources resources = context.getResources();
-                Bitmap largeIcon = BitmapFactory.decodeResource(resources,
+
+                int largeIconWidth = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
+                        ? resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
+                        : resources.getDimensionPixelSize(R.dimen.notification_large_icon_default);
+
+                Bitmap largeIcon;
+                try {
+                    largeIcon = Glide.with(context)
+                            .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                            .asBitmap()
+                            .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                            .into(largeIconWidth, largeIconWidth)
+                            .get();
+                } catch (InterruptedException | ExecutionException e) {
+                    largeIcon = BitmapFactory.decodeResource(resources,
                         Utility.getArtResourceForWeatherCondition(weatherId));
+                }
+
                 NotificationCompat.Builder mBuilder =
                         new NotificationCompat.Builder(getContext())
                                 .setColor(resources.getColor(R.color.sunshine_light_blue))
@@ -565,6 +612,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN})
+    @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
     public @interface LocationStatus {}
 }

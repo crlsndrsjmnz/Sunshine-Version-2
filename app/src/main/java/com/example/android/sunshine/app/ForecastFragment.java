@@ -141,7 +141,7 @@ public class ForecastFragment extends Fragment
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            updateWeather();
+            SunshineSyncAdapter.syncImmediately(mActivity);
             return true;
         }
         if (id == R.id.action_map) {
@@ -201,13 +201,7 @@ public class ForecastFragment extends Fragment
     }
 
     public void onLocationChanged() {
-        updateWeather();
-
         getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
-    }
-
-    private void updateWeather() {
-        SunshineSyncAdapter.syncImmediately(mActivity);
     }
 
     @Override
@@ -301,20 +295,25 @@ public class ForecastFragment extends Fragment
 
         if (mEmptyView != null && mForecastAdapter.isEmpty()) {
 
-            int message = R.string.empty_forecast_no_weather;
+            int message;
             @SunshineSyncAdapter.LocationStatus int status = Utility.getConnectionStatus(mActivity);
 
-            switch (status) {
-                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
-                    message = R.string.empty_forecast_server_down;
-                    break;
-                case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
-                    message = R.string.empty_forecast_server_invalid;
-                    break;
-                default:
-                    if (!Utility.isNetworkAvailable(getActivity())) {
-                        message = R.string.empty_forecast_no_network;
-                    }
+            if (!Utility.isNetworkAvailable(getActivity())) {
+                message = R.string.empty_forecast_no_network;
+            } else {
+                switch (status) {
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                        message = R.string.empty_forecast_server_down;
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                        message = R.string.empty_forecast_server_invalid;
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                        message = R.string.empty_forecast_list_invalid_location;
+                        break;
+                    default:
+                        message = R.string.empty_forecast_no_weather;
+                }
             }
 
             mEmptyView.setText(message);

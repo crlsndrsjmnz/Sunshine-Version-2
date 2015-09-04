@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 /**
  * {@link ForecastAdapter} exposes a list of weather forecasts
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
@@ -70,25 +72,48 @@ public class ForecastAdapter extends CursorAdapter {
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
         // Use placeholder image for now
 
-        if (viewType == VIEW_TYPE_TODAY)
-            viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-        else
-            viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
-        viewHolder.iconView.setContentDescription(cursor.getString(ForecastFragment.COL_WEATHER_DESC) + " icon");
+        if (viewType == VIEW_TYPE_TODAY) {
+            // viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+            Glide.with(context)
+                    .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                    .into(viewHolder.iconView);
+        } else {
+            //viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
+            Glide.with(context)
+                    .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                    .into(viewHolder.iconView);
+        }
+
+        String weatherDescription = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
+        viewHolder.iconView.setContentDescription(context.getString(
+                R.string.a11y_forecast_icon,
+                weatherDescription));
 
         viewHolder.dateView.setText(Utility.getFriendlyDayString(context, cursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
-        viewHolder.descriptionView.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
+
+        viewHolder.descriptionView.setText(weatherDescription);
+        viewHolder.descriptionView.setContentDescription(context.getString(
+                R.string.a11y_forecast,
+                weatherDescription));
 
         boolean isMetric = Utility.isMetric(context);
         String metricDesc = isMetric ? " Celsius" : " Fahrenheit";
 
         String tvHighText = Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP), isMetric);
         viewHolder.highTempView.setText(tvHighText);
-        viewHolder.highTempView.setContentDescription(tvHighText + metricDesc);
+        viewHolder.highTempView.setContentDescription(context.getString(
+                R.string.a11y_high_temp,
+                tvHighText,
+                metricDesc));
 
         String tvLowText = Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), isMetric);
         viewHolder.lowTempView.setText(Utility.formatTemperature(context, cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP), isMetric));
-        viewHolder.lowTempView.setContentDescription(tvLowText + metricDesc);
+        viewHolder.lowTempView.setContentDescription(context.getString(
+                R.string.a11y_low_temp,
+                tvLowText,
+                metricDesc));
     }
 
     /**
