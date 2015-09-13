@@ -302,7 +302,7 @@ public class Utility {
      */
     public static boolean usingLocalGraphics(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String sunshineArtPack = context.getString(R.string.pref_iconpack_label_colored);
+        String sunshineArtPack = context.getString(R.string.pref_iconpack_label_sunshine);
         return prefs.getString(context.getString(R.string.pref_iconpack_key),
                 sunshineArtPack).equals(sunshineArtPack);
     }

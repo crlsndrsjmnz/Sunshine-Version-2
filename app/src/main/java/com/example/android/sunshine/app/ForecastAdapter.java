@@ -73,17 +73,21 @@ public class ForecastAdapter extends CursorAdapter {
         // Use placeholder image for now
 
         if (viewType == VIEW_TYPE_TODAY) {
-            // viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
-            Glide.with(context)
-                    .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
-                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
-                    .into(viewHolder.iconView);
+            if (Utility.usingLocalGraphics(context))
+                viewHolder.iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+            else
+                Glide.with(context)
+                        .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                        .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                        .into(viewHolder.iconView);
         } else {
-            //viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
-            Glide.with(context)
-                    .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
-                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
-                    .into(viewHolder.iconView);
+            if (Utility.usingLocalGraphics(context))
+                viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));
+            else
+                Glide.with(context)
+                        .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                        .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                        .into(viewHolder.iconView);
         }
 
         String weatherDescription = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
