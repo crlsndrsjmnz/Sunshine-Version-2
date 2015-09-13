@@ -11,7 +11,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -87,7 +86,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     ImageView mIcon;
     WindDirectionView mWindDirectionView;
 
-    ShareActionProvider mShareActionProvider;
     Context mContext;
     private String mForecastStr;
 
@@ -133,7 +131,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             }
         }
 
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_detail_start, container, false);
 
         mIcon = (ImageView) rootView.findViewById(R.id.detail_icon);
         mTvDate = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -194,7 +192,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     null,
                     null);
         }
-
+        getView().setVisibility(View.INVISIBLE);
         return null;
     }
 
@@ -203,6 +201,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // old cursor once we return.)
 
         if (data != null && data.moveToNext()) {
+
+            getView().setVisibility(View.VISIBLE);
+
             long date = data.getLong(COL_WEATHER_DATE);
             mTvDate.setText(Utility.getFullFriendlyDayString(mContext, date));
             String dateString = Utility.formatDate(date);
@@ -287,10 +288,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     R.string.a11y_forecast_icon,
                     weatherDescription));
 
-            // If onCreateOptionsMenu has already happened, we need to update the share intent now.
-            if (mShareActionProvider != null) {
-                mShareActionProvider.setShareIntent(createShareForecastIntent());
-            }
         }
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         Toolbar toolbarView = (Toolbar) getView().findViewById(R.id.toolbar);
