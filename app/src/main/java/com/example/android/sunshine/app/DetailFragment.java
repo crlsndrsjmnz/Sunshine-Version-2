@@ -11,6 +11,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -87,6 +89,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     WindDirectionView mWindDirectionView;
 
     Context mContext;
+    View detailContainer;
     private String mForecastStr;
 
     public DetailFragment() {
@@ -132,6 +135,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
 
         View rootView = inflater.inflate(R.layout.fragment_detail_start, container, false);
+
+        detailContainer = rootView.findViewById(R.id.weather_detail_container);
 
         mIcon = (ImageView) rootView.findViewById(R.id.detail_icon);
         mTvDate = (TextView) rootView.findViewById(R.id.detail_date_textview);
@@ -192,7 +197,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     null,
                     null);
         }
-        getView().setVisibility(View.INVISIBLE);
+
+        //getView().setVisibility(View.INVISIBLE);
+        ViewParent view = getView().getParent(); //.setVisibility(View.VISIBLE);
+        if (view instanceof CardView)
+            ((View) view).setVisibility(View.INVISIBLE);
         return null;
     }
 
@@ -202,7 +211,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         if (data != null && data.moveToNext()) {
 
-            getView().setVisibility(View.VISIBLE);
+            ViewParent view = getView().getParent(); //.setVisibility(View.VISIBLE);
+            if (view instanceof CardView)
+                ((View) view).setVisibility(View.VISIBLE);
 
             long date = data.getLong(COL_WEATHER_DATE);
             mTvDate.setText(Utility.getFullFriendlyDayString(mContext, date));
