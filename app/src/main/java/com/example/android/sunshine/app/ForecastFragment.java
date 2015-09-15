@@ -225,9 +225,6 @@ public class ForecastFragment extends Fragment
         // sample only has one Loader, so we don't care about the ID.
         // First, pick the base URI to use depending on whether we are
         // currently filtering.
-
-        Log.d(LOG_TAG, "############################# ForecastFragment:onCreateLoader");
-
         String locationSetting = Utility.getPreferredLocation(mActivity);
 
         // Sort order:  Ascending, by date.
@@ -247,15 +244,7 @@ public class ForecastFragment extends Fragment
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
 
-        Log.d(LOG_TAG, "############################# ForecastFragment:onLoadFinished");
-
         mForecastAdapter.swapCursor(data);
-
-        if (data.getCount() == 0) {
-            mEmptyView.setVisibility(View.VISIBLE);
-        } else {
-            mEmptyView.setVisibility(View.INVISIBLE);
-        }
 
         if (mPosition != RecyclerView.NO_POSITION)
             mRecyclerView.smoothScrollToPosition(mPosition);
