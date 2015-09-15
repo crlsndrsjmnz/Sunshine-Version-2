@@ -26,6 +26,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,8 +37,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,7 +44,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
- * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
+ * Encapsulates fetching the forecast and displaying it as a {@link RecyclerView} layout.
  */
 public class ForecastFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -82,8 +84,9 @@ public class ForecastFragment extends Fragment
     };
     Callback mCallback;
     Activity mActivity;
-    ListView mListView;
-    int mListViewPosition;
+    RecyclerView mRecyclerView;
+    int mPosition = RecyclerView.NO_POSITION;
+    private RecyclerView.LayoutManager mLayoutManager;
     private TextView mEmptyView;
     private ForecastAdapter mForecastAdapter;
     private boolean mSinglePaneLayout;
@@ -157,37 +160,44 @@ public class ForecastFragment extends Fragment
                              Bundle savedInstanceState) {
 
         if (savedInstanceState != null && savedInstanceState.containsKey(FORECAST_LIST_POSITION)) {
-            mListViewPosition = savedInstanceState.getInt(FORECAST_LIST_POSITION);
+            mPosition = savedInstanceState.getInt(FORECAST_LIST_POSITION);
         }
 
-        mForecastAdapter = new ForecastAdapter(mActivity, null, 0);
-        mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        mEmptyView = (TextView) rootView.findViewById(R.id.emptyview_message);
+        mEmptyView = (TextView) rootView.findViewById(R.id.recycler_forecast_empty);
 
-        // Get a reference to the ListView, and attach this adapter to it.
-        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        mListView.setAdapter(mForecastAdapter);
-        mListView.setEmptyView(mEmptyView);
-
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mForecastAdapter = new ForecastAdapter(mActivity, new ForecastAdapter.ItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+            public void onClick(long date, ForecastAdapter.ViewHolder viewHolder) {
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
+                String locationSetting = Utility.getPreferredLocation(mActivity);
 
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(mActivity);
+                mCallback.onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                        locationSetting, date));
 
-                    mCallback.onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                            locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-                }
-                mListViewPosition = position;
+                mPosition = viewHolder.getAdapterPosition();
             }
-        });
+
+        }, mEmptyView);
+
+        mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        if (null != toolbar) {
+            activity.setSupportActionBar(toolbar);
+            activity.getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
+        // Get a reference to the ListView, and attach this adapter to it.
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_forecast);
+
+        // use a linear layout manager
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+
+        mRecyclerView.setAdapter(mForecastAdapter);
 
         return rootView;
     }
@@ -196,8 +206,8 @@ public class ForecastFragment extends Fragment
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        if (mListViewPosition != ListView.INVALID_POSITION)
-            outState.putInt(FORECAST_LIST_POSITION, mListViewPosition);
+        if (mPosition != RecyclerView.NO_POSITION)
+            outState.putInt(FORECAST_LIST_POSITION, mPosition);
     }
 
     public void onLocationChanged() {
@@ -215,6 +225,9 @@ public class ForecastFragment extends Fragment
         // sample only has one Loader, so we don't care about the ID.
         // First, pick the base URI to use depending on whether we are
         // currently filtering.
+
+        Log.d(LOG_TAG, "############################# ForecastFragment:onCreateLoader");
+
         String locationSetting = Utility.getPreferredLocation(mActivity);
 
         // Sort order:  Ascending, by date.
@@ -233,10 +246,19 @@ public class ForecastFragment extends Fragment
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
+
+        Log.d(LOG_TAG, "############################# ForecastFragment:onLoadFinished");
+
         mForecastAdapter.swapCursor(data);
 
-        if (mListViewPosition != ListView.INVALID_POSITION)
-            mListView.smoothScrollToPosition(mListViewPosition);
+        if (data.getCount() == 0) {
+            mEmptyView.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyView.setVisibility(View.INVISIBLE);
+        }
+
+        if (mPosition != RecyclerView.NO_POSITION)
+            mRecyclerView.smoothScrollToPosition(mPosition);
 
         setErrorMsg();
     }
@@ -266,9 +288,11 @@ public class ForecastFragment extends Fragment
         String longitude;
 
         if (mForecastAdapter != null && !mForecastAdapter.isEmpty()) {
-            cursor = (Cursor) mForecastAdapter.getItem(0);
-            latitude = cursor.getString(COL_COORD_LAT);
-            longitude = cursor.getString(COL_COORD_LONG);
+            //cursor = (Cursor) mForecastAdapter.getItem(0);
+            //latitude = cursor.getString(COL_COORD_LAT);
+            //longitude = cursor.getString(COL_COORD_LONG);
+            latitude = "";
+            longitude = "";
         } else {
             Toast.makeText(mActivity, "Weather data not found", Toast.LENGTH_SHORT).show();
             return;
