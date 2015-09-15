@@ -29,7 +29,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
     private ItemClickListener mItemClickListener;
 
     public ForecastAdapter(Context context, ItemClickListener itemClickListener, TextView emptyView) {
-        //super(context, c, flags);
         mContext = context;
         mEmptyView = emptyView;
         mItemClickListener = itemClickListener;
@@ -71,9 +70,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
     @Override
     public ForecastAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         // Choose the layout type
-        //int type = getItemViewType(mCursor.getPosition());
-
-        //Log.d(LOG_TAG, "getItemViewType: " + viewType + " - mCursor.getPosition() " + mCursor.getPosition() + " - type " + type);
         if (viewGroup instanceof RecyclerView) {
             int layoutId = -1;
             // TODO: Determine layoutId from viewType
