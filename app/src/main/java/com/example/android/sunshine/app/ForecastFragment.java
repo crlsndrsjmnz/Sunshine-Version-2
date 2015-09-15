@@ -169,7 +169,7 @@ public class ForecastFragment extends Fragment
         mForecastAdapter = new ForecastAdapter(mActivity, new ForecastAdapter.ItemClickListener() {
 
             @Override
-            public void onClick(long date, ForecastAdapter.ViewHolder viewHolder) {
+            public void onClick(Long date, ForecastAdapter.ViewHolder viewHolder) {
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 String locationSetting = Utility.getPreferredLocation(mActivity);

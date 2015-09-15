@@ -22,11 +22,11 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_FUTURE_DAY = 1;
     private static final int VIEW_TYPE_COUNT = 2;
+    private final TextView mEmptyView;
+    private final Context mContext;
+    private final ItemClickListener mItemClickListener;
     private boolean mSinglePaneLayout;
-    private Context mContext;
     private Cursor mCursor;
-    private TextView mEmptyView;
-    private ItemClickListener mItemClickListener;
 
     public ForecastAdapter(Context context, ItemClickListener itemClickListener, TextView emptyView) {
         mContext = context;
@@ -81,7 +81,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
             View view = LayoutInflater.from(mContext).inflate(layoutId, viewGroup, false);
             view.setFocusable(true);
 
-            return new ViewHolder(view, mItemClickListener);
+            return new ViewHolder(view);
 
         } else {
             throw new RuntimeException("Not bound to RecyclerView");
@@ -122,8 +122,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
                 R.string.a11y_forecast_icon,
                 weatherDescription));
 
-        viewHolder.mDateView.setText(Utility.getFriendlyDayString(mContext, mCursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
-        viewHolder.mDate = mCursor.getLong(ForecastFragment.COL_WEATHER_DATE);
+        long date = mCursor.getLong(ForecastFragment.COL_WEATHER_DATE);
+        viewHolder.mDateView.setText(Utility.getFriendlyDayString(mContext, date));
+        viewHolder.mDate = date;
 
         viewHolder.mDescriptionView.setText(weatherDescription);
         viewHolder.mDescriptionView.setContentDescription(mContext.getString(
@@ -149,7 +150,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
     }
 
     public interface ItemClickListener {
-        void onClick(long date, ViewHolder viewHolder);
+        void onClick(Long date, ViewHolder viewHolder);
     }
 
     /**
@@ -162,16 +163,14 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
         public final TextView mHighTempView;
         public final TextView mLowTempView;
         public long mDate;
-        private ItemClickListener mListener;
 
-        public ViewHolder(View view, ItemClickListener listener) {
+        public ViewHolder(View view) {
             super(view);
             mIconView = (ImageView) view.findViewById(R.id.list_item_icon);
             mDateView = (TextView) view.findViewById(R.id.list_item_date_textview);
             mDescriptionView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
             mHighTempView = (TextView) view.findViewById(R.id.list_item_high_textview);
             mLowTempView = (TextView) view.findViewById(R.id.list_item_low_textview);
-            mListener = listener;
             mDate = 0;
 
             view.setOnClickListener(this);
@@ -179,7 +178,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
 
         @Override
         public void onClick(View view) {
-            mListener.onClick(mDate, this);
+            mItemClickListener.onClick(mDate, this);
         }
     }
 }
