@@ -15,12 +15,14 @@
  */
 package com.example.android.sunshine.app;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -138,6 +140,13 @@ public class ForecastFragment extends Fragment
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mRecyclerView.clearOnScrollListeners();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -213,6 +222,26 @@ public class ForecastFragment extends Fragment
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
 
         mRecyclerView.setAdapter(mForecastAdapter);
+
+        final View parallaxBar = rootView.findViewById(R.id.parallax_bar);
+        if (parallaxBar != null) {
+
+            mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+
+                @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+
+                    int max = parallaxBar.getHeight();
+                    double fraction = -0.5 * dy;
+                    final float translateValue = (float) (parallaxBar.getTranslationY() + fraction);
+
+                    if (-max <= translateValue && translateValue <= 0)
+                        parallaxBar.setTranslationY(translateValue);
+                }
+            });
+        }
 
         return rootView;
     }

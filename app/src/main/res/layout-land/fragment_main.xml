@@ -11,7 +11,7 @@
         android:layout_centerHorizontal="true" />
 
     <LinearLayout
-        android:id="@+id/appbar"
+        android:id="@+id/parallax_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
