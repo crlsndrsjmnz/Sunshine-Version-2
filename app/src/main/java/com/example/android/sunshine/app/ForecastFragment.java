@@ -18,6 +18,7 @@ package com.example.android.sunshine.app;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,6 +39,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.AbsListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,7 +93,8 @@ public class ForecastFragment extends Fragment
     private RecyclerView.LayoutManager mLayoutManager;
     private TextView mEmptyView;
     private ForecastAdapter mForecastAdapter;
-    private boolean mSinglePaneLayout;
+    private boolean mSinglePaneLayout, mAutoSelectView;
+    private int mChoiceMode;
 
     public ForecastFragment() {
     }
@@ -159,10 +164,6 @@ public class ForecastFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(FORECAST_LIST_POSITION)) {
-            mPosition = savedInstanceState.getInt(FORECAST_LIST_POSITION);
-        }
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mEmptyView = (TextView) rootView.findViewById(R.id.recycler_forecast_empty);
 
@@ -180,7 +181,21 @@ public class ForecastFragment extends Fragment
                 mPosition = viewHolder.getAdapterPosition();
             }
 
-        }, mEmptyView);
+        }, mEmptyView, mChoiceMode);
+
+        // If there's instance state, mine it for useful information.
+        // The end-goal here is that the user never knows that turning their device sideways
+        // does crazy lifecycle related things.  It should feel like some stuff stretched out,
+        // or magically appeared to take advantage of room, but data or place in the app was never
+        // actually *lost*.
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(FORECAST_LIST_POSITION)) {
+                // The Recycler View probably hasn't even been populated yet.  Actually perform the
+                // swapout in onLoadFinished.
+                mPosition = savedInstanceState.getInt(FORECAST_LIST_POSITION);
+            }
+            mForecastAdapter.onRestoreInstanceState(savedInstanceState);
+        }
 
         mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
 
@@ -204,10 +219,12 @@ public class ForecastFragment extends Fragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
         if (mPosition != RecyclerView.NO_POSITION)
             outState.putInt(FORECAST_LIST_POSITION, mPosition);
+
+        mForecastAdapter.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     public void onLocationChanged() {
@@ -250,6 +267,27 @@ public class ForecastFragment extends Fragment
             mRecyclerView.smoothScrollToPosition(mPosition);
 
         setErrorMsg();
+
+        if (data.getCount() > 0) {
+            mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    // Since we know we're going to get items, we keep the listener around until
+                    // we see Children.
+                    if (mRecyclerView.getChildCount() > 0) {
+                        mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        int itemPosition = mForecastAdapter.getSelectedItemPosition();
+                        if (RecyclerView.NO_POSITION == itemPosition) itemPosition = 0;
+                        RecyclerView.ViewHolder vh = mRecyclerView.findViewHolderForAdapterPosition(itemPosition);
+                        if (null != vh && mAutoSelectView) {
+                            mForecastAdapter.selectView(vh);
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
@@ -337,6 +375,16 @@ public class ForecastFragment extends Fragment
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.pref_connection_status_key)))
             setErrorMsg();
+    }
+
+    @Override
+    public void onInflate(Activity activity, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(activity, attrs, savedInstanceState);
+        TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.ForecastFragment,
+                0, 0);
+        mChoiceMode = a.getInt(R.styleable.ForecastFragment_android_choiceMode, AbsListView.CHOICE_MODE_NONE);
+        mAutoSelectView = a.getBoolean(R.styleable.ForecastFragment_autoSelectView, false);
+        a.recycle();
     }
 
     /**

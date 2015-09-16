@@ -2,6 +2,7 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,13 +26,16 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
     private final TextView mEmptyView;
     private final Context mContext;
     private final ItemClickListener mItemClickListener;
+    final private ItemChoiceManager mICM;
     private boolean mSinglePaneLayout;
     private Cursor mCursor;
 
-    public ForecastAdapter(Context context, ItemClickListener itemClickListener, TextView emptyView) {
+    public ForecastAdapter(Context context, ItemClickListener itemClickListener, TextView emptyView, int choiceMode) {
         mContext = context;
         mEmptyView = emptyView;
         mItemClickListener = itemClickListener;
+        mICM = new ItemChoiceManager(this);
+        mICM.setChoiceMode(choiceMode);
     }
 
     public void setSinglePaneLayout(boolean singlePaneLayout) {
@@ -147,6 +151,27 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
                 R.string.a11y_low_temp,
                 tvLowText,
                 metricDesc));
+
+        mICM.onBindViewHolder(viewHolder, position);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mICM.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        mICM.onSaveInstanceState(outState);
+    }
+
+    public int getSelectedItemPosition() {
+        return mICM.getSelectedItemPosition();
+    }
+
+    public void selectView(RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof ViewHolder) {
+            ViewHolder vfh = (ViewHolder) viewHolder;
+            vfh.onClick(vfh.itemView);
+        }
     }
 
     public interface ItemClickListener {
