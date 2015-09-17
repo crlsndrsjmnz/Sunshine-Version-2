@@ -5,22 +5,20 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
-        <item name="toolbarStyle">@style/Toolbar</item>
-    </style>
-
-    <!-- Main activity theme. -->
-    <style name="ForecastTheme" parent="AppTheme">
         <item name="actionBarStyle">@style/Toolbar</item>
     </style>
+
+    <style name="AppTheme.Main" parent="@style/AppTheme" />
+
+    <style name="AppTheme.Details" parent="@style/AppTheme" />
+
+    <style name="SettingsTheme" parent="@style/AppTheme" />
 
     <!-- main activity action bar styles -->
     <style name="Toolbar" parent="Widget.AppCompat.Toolbar">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="popupTheme">@style/Theme.AppCompat.Light</item>
     </style>
-
-    <!-- Settings activity theme. -->
-    <style name="SettingsTheme" parent="AppTheme"></style>
 
     <!-- Style for forecast listview -->
     <style name="ForecastListStyle">

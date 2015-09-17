@@ -24,6 +24,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -214,7 +216,8 @@ public class MainActivity extends ActionBarActivity
             args.putParcelable(DetailFragment.FORECAST_URI, dateUri);
             intent.putExtras(args);
 
-            startActivity(intent);
+            ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this);
+            ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
         }
     }
 
