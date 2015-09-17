@@ -185,7 +185,7 @@ public class ForecastFragment extends Fragment
                 String locationSetting = Utility.getPreferredLocation(mActivity);
 
                 mCallback.onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                        locationSetting, date));
+                        locationSetting, date), viewHolder);
 
                 mPosition = viewHolder.getAdapterPosition();
             }
@@ -425,6 +425,6 @@ public class ForecastFragment extends Fragment
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        void onItemSelected(Uri dateUri);
+        void onItemSelected(Uri dateUri, ForecastAdapter.ViewHolder viewHolder);
     }
 }

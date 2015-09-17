@@ -130,4 +130,6 @@
     <!-- Format for retrieving art from an external source [CHAR LIMIT=NONE] -->
     <string name="format_art_url" translatable="false">https://raw.githubusercontent.com/udacity/sunshine_icons/master/Archive/<xliff:g id="theme">%s</xliff:g>/art_<xliff:g id="description">%s</xliff:g>.png</string>
 
+    <string name="detail_icon_transition_name">detail_icon_transition</string>
+
 </resources>

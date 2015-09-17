@@ -27,11 +27,13 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.util.Pair;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
@@ -202,7 +204,7 @@ public class MainActivity extends ActionBarActivity
     }
 
     @Override
-    public void onItemSelected(Uri dateUri) {
+    public void onItemSelected(Uri dateUri, ForecastAdapter.ViewHolder viewHolder) {
         DetailFragment df = DetailFragment.newInstance(dateUri);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 
@@ -216,7 +218,12 @@ public class MainActivity extends ActionBarActivity
             args.putParcelable(DetailFragment.FORECAST_URI, dateUri);
             intent.putExtras(args);
 
-            ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this);
+            ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                    Pair.create((View) viewHolder.mIconView, getString(R.string.detail_icon_transition_name)));
+
+            //supportPostponeEnterTransition();
+            //getActivity().supportStartPostponedEnterTransition();
+
             ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
         }
     }
