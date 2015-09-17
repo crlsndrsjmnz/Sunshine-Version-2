@@ -2,8 +2,8 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -114,8 +114,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
         else
             defaultImage = Utility.getIconResourceForWeatherCondition(weatherId);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            viewHolder.mIconView.setTransitionName(mContext.getString(R.string.detail_icon_transition_name) + position);
+        // this enables better animations. even if we lose state due to a device rotation,
+        // the animator can use this to re-find the original view
+        ViewCompat.setTransitionName(viewHolder.mIconView, mContext.getString(R.string.vh_detail_icon_transition_name) + position);
 
         if (Utility.usingLocalGraphics(mContext))
             viewHolder.mIconView.setImageResource(defaultImage);
@@ -123,6 +124,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
             Glide.with(mContext)
                     .load(Utility.getArtUrlForWeatherCondition(mContext, weatherId))
                     .error(defaultImage)
+                    .crossFade()
                     .into(viewHolder.mIconView);
 
         String weatherDescription = mCursor.getString(ForecastFragment.COL_WEATHER_DESC);

@@ -95,7 +95,7 @@ public class ForecastFragment extends Fragment
     private RecyclerView.LayoutManager mLayoutManager;
     private TextView mEmptyView;
     private ForecastAdapter mForecastAdapter;
-    private boolean mSinglePaneLayout, mAutoSelectView;
+    private boolean mSinglePaneLayout, mAutoSelectView, mHoldForTransition;
     private int mChoiceMode;
 
     public ForecastFragment() {
@@ -110,6 +110,12 @@ public class ForecastFragment extends Fragment
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        // We hold for transition here just in-case the activity
+        // needs to be re-created. In a standard return transition,
+        // this doesn't actually make a difference.
+        if (mHoldForTransition)
+            getActivity().supportPostponeEnterTransition();
+
         // Prepare the loader.  Either re-connect with an existing one,
         // or start a new one.
         getLoaderManager().initLoader(WEATHER_LOADER_ID, null, this);
@@ -297,7 +303,9 @@ public class ForecastFragment extends Fragment
 
         setErrorMsg();
 
-        if (data.getCount() > 0) {
+        if (data.getCount() == 0) {
+            getActivity().supportStartPostponedEnterTransition();
+        } else {
             mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
                 public boolean onPreDraw() {
@@ -311,6 +319,11 @@ public class ForecastFragment extends Fragment
                         if (null != vh && mAutoSelectView) {
                             mForecastAdapter.selectView(vh);
                         }
+
+                        if (mHoldForTransition) {
+                            getActivity().supportStartPostponedEnterTransition();
+                        }
+
                         return true;
                     }
                     return false;
@@ -344,9 +357,6 @@ public class ForecastFragment extends Fragment
         String longitude;
 
         if (mForecastAdapter != null && !mForecastAdapter.isEmpty()) {
-            //cursor = (Cursor) mForecastAdapter.getItem(0);
-            //latitude = cursor.getString(COL_COORD_LAT);
-            //longitude = cursor.getString(COL_COORD_LONG);
             latitude = "";
             longitude = "";
         } else {
@@ -413,6 +423,7 @@ public class ForecastFragment extends Fragment
                 0, 0);
         mChoiceMode = a.getInt(R.styleable.ForecastFragment_android_choiceMode, AbsListView.CHOICE_MODE_NONE);
         mAutoSelectView = a.getBoolean(R.styleable.ForecastFragment_autoSelectView, false);
+        mHoldForTransition = a.getBoolean(R.styleable.ForecastFragment_sharedElementTransitions, false);
         a.recycle();
     }
 

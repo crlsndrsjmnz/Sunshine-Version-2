@@ -219,10 +219,7 @@ public class MainActivity extends ActionBarActivity
             intent.putExtras(args);
 
             ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                    Pair.create((View) viewHolder.mIconView, getString(R.string.detail_icon_transition_name)));
-
-            //supportPostponeEnterTransition();
-            //getActivity().supportStartPostponedEnterTransition();
+                    new Pair<View, String>(viewHolder.mIconView, getString(R.string.detail_icon_transition_name)));
 
             ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
         }

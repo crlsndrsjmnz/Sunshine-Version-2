@@ -17,11 +17,12 @@
 package com.example.android.sunshine.app;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
-public class DetailActivity extends ActionBarActivity {
+public class DetailActivity extends AppCompatActivity {
 
     public static final String DETAILFRAGMENT_TAG = "DFTAG";
+    private static final String LOG_TAG = DetailActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +33,19 @@ public class DetailActivity extends ActionBarActivity {
         if (savedInstanceState == null) {
 
             detailFragment = new DetailFragment();
-            detailFragment.setArguments(getIntent().getExtras());
+
+            Bundle arguments = new Bundle();
+            arguments.putParcelable(DetailFragment.FORECAST_URI, getIntent().getParcelableExtra(DetailFragment.FORECAST_URI));
+            arguments.putBoolean(DetailFragment.DETAIL_TRANSITION_ANIMATION, true);
+
+            detailFragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.weather_detail_container, detailFragment, DETAILFRAGMENT_TAG)
                     .commit();
+
+            // Being here means we are in animation mode
+            supportPostponeEnterTransition();
         }
     }
 }

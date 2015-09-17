@@ -32,6 +32,7 @@ import com.example.android.sunshine.app.data.WeatherContract;
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String FORECAST_URI = "URI";
+    public static final String DETAIL_TRANSITION_ANIMATION = "DTA";
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
     // must change.
     static final int COL_WEATHER_ID = 0;
@@ -92,6 +93,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     View detailContainer;
     private String mForecastStr;
 
+    private boolean mTransitionAnimation;
+
     public DetailFragment() {
         setHasOptionsMenu(true);
     }
@@ -126,11 +129,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         if (savedInstanceState != null) {
             mUri = savedInstanceState.getParcelable(FORECAST_URI);
+
             getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
         } else {
             Bundle arguments = getArguments();
             if (arguments != null) {
                 mUri = arguments.getParcelable(FORECAST_URI);
+                mTransitionAnimation = arguments.getBoolean(DetailFragment.DETAIL_TRANSITION_ANIMATION, false);
             }
         }
 
@@ -198,8 +203,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     null);
         }
 
-        //getView().setVisibility(View.INVISIBLE);
-        ViewParent view = getView().getParent(); //.setVisibility(View.VISIBLE);
+        ViewParent view = getView().getParent();
         if (view instanceof CardView)
             ((View) view).setVisibility(View.INVISIBLE);
         return null;
@@ -304,7 +308,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         Toolbar toolbarView = (Toolbar) getView().findViewById(R.id.toolbar);
 
         // We need to start the enter transition after the data has loaded
-        if (activity instanceof DetailActivity) {
+        if (mTransitionAnimation) {
             activity.supportStartPostponedEnterTransition();
 
             if (null != toolbarView) {
@@ -339,4 +343,5 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
         }
     }
+
 }
