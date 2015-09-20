@@ -260,8 +260,6 @@ public class ForecastFragment extends Fragment
                     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                     @Override
                     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                        //super.onScrolled(recyclerView, dx, dy);
-
                         if (mRecyclerView.computeVerticalScrollOffset() == 0)
                             appBarLayout.setElevation(0);
                         else

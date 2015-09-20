@@ -57,6 +57,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
 
+    public static final String ACTION_DATA_UPDATED = "com.example.android.sunshine.app.ACTION_DATA_UPDATED";
+
     public static final int LOCATION_STATUS_OK = 0;
     public static final int LOCATION_STATUS_SERVER_DOWN = 1;
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
@@ -443,6 +445,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 Log.d(LOG_TAG, "%%%%%%%%%%%%%%%%%%%% SunshineSyncAdapter Deleted " + rows + " rows");
 
+                updateWidget(mContext);
                 notifyWeather();
             }
 
@@ -609,6 +612,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(context.getString(R.string.pref_connection_status_key), status);
         editor.commit();
+    }
+
+    public void updateWidget(Context context) {
+        Intent intent = new Intent(ACTION_DATA_UPDATED);
+        context.sendBroadcast(intent);
     }
 
     @Retention(RetentionPolicy.SOURCE)

@@ -83,6 +83,10 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
+        <service
+            android:name=".ForecastWidgetService"
+            android:exported="false" />
+
         <!-- GCM receiver - Commented out until we write the class -->
         <receiver
             android:name=".GcmBroadcastReceiver"
@@ -91,6 +95,17 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="com.example.android.sunshine.app" />
             </intent-filter>
+        </receiver>
+
+        <!-- Widget info -->
+        <receiver android:name="ForecastWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.android.sunshine.app.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/forecast_widget" />
         </receiver>
     </application>
 
