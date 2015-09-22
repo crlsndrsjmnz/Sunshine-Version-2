@@ -1,36 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="@dimen/widget_margin">
 
     <LinearLayout
+        android:id="@+id/widget_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/detail_accent_label"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:background="@android:drawable/screen_background_light_transparent"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/widget_padding_vertical"
+        android:paddingLeft="@dimen/widget_padding_horizontal"
+        android:paddingRight="@dimen/widget_padding_horizontal"
+        android:paddingTop="@dimen/widget_padding_vertical">
 
         <ImageView
             android:id="@+id/widget_item_icon"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:adjustViewBounds="true"
+            android:layout_weight="1"
             android:maxHeight="@dimen/widget_icon"
             android:maxWidth="@dimen/widget_icon" />
 
-        <TextView
-            android:id="@+id/widget_high_textview"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:fontFamily="sans-serif-light"
-            android:textColor="@color/primary_text"
-            android:textSize="@dimen/widget_font_size" />
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/widget_high_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="sans-serif"
+                android:textAppearance="?android:textAppearanceLarge"
+                android:textColor="@color/primary_text" />
+
+            <TextView
+                android:id="@+id/widget_low_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="sans-serif"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="@color/secondary_text" />
+        </LinearLayout>
     </LinearLayout>
-
 </FrameLayout>

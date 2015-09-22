@@ -133,4 +133,7 @@
     <string name="detail_icon_transition_name">icon_transition</string>
     <string name="vh_detail_icon_transition_name">vh_icon_transition</string>
 
+    <!-- Strings related to Widgets -->
+    <string name="title_widget_today">Sunshine Today</string>
+
 </resources>

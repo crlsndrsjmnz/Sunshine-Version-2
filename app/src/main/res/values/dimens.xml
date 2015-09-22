@@ -2,6 +2,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="emptyview_vertical_margin">50dp</dimen>
 
     <dimen name="forecast_detail_horizontal_padding">32dp</dimen>
 
@@ -20,7 +21,7 @@
     <!-- Icon Sizes -->
     <dimen name="today_icon">96dp</dimen>
     <dimen name="list_icon">40dp</dimen>
-    <dimen name="widget_icon">35dp</dimen>
+    <dimen name="widget_icon">40dp</dimen>
 
     <!-- Extra Padding -->
     <dimen name="detail_view_extra_padding">@dimen/abc_list_item_padding_horizontal_material</dimen>
@@ -40,7 +41,17 @@
 
     <dimen name="widget_margin">8dp</dimen>
     <dimen name="widget_font_size">22sp</dimen>
-    <dimen name="widget_today_default_height">40dp</dimen>
-    <dimen name="widget_today_default_width">40dp</dimen>
 
+    <dimen name="widget_today_default_height">40dp</dimen>
+    <dimen name="widget_today_default_width">110dp</dimen>
+    <dimen name="widget_today_min_height">@dimen/widget_today_default_height</dimen>
+    <dimen name="widget_today_min_width">40dp</dimen>
+
+    <dimen name="widget_today_large_width">220dp</dimen>
+
+    <dimen name="widget_icon_padding_vertical">20dp</dimen>
+    <dimen name="widget_icon_padding_horizontal">24dp</dimen>
+
+    <dimen name="widget_padding_vertical">4dp</dimen>
+    <dimen name="widget_padding_horizontal">8dp</dimen>
 </resources>
