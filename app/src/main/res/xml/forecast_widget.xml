@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:initialLayout="@layout/forecast_widget"
+    android:initialLayout="@layout/widget_forecast"
     android:minHeight="@dimen/widget_today_default_height"
     android:minResizeHeight="@dimen/widget_today_min_height"
     android:minResizeWidth="@dimen/widget_today_min_width"
@@ -9,4 +9,4 @@
     android:previewImage="@drawable/widget_preview_today"
     android:resizeMode="horizontal"
     android:updatePeriodMillis="0"
-    tools:ignore="UnusedAttribute"></appwidget-provider>
+    tools:ignore="UnusedAttribute" />

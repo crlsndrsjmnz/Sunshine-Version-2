@@ -31,13 +31,16 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
             WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
             WeatherContract.WeatherEntry.COLUMN_SHORT_DESC,
             WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
-            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP
+            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_DATE
     };
     // these indices must match the projection
     private static final int INDEX_WEATHER_ID = 0;
     private static final int INDEX_SHORT_DESC = 1;
     private static final int INDEX_MAX_TEMP = 2;
     private static final int INDEX_MIN_TEMP = 3;
+    private static final int INDEX_DATE = 4;
+
     private static final String LOG_TAG = ForecastWidgetService.class.getSimpleName();
     private Context mContext;
     private int mAppWidgetId;
@@ -92,8 +95,9 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
         int weatherId, weatherArtResourceId, widgetWidth;
         boolean isMetric;
-        String description, formattedMaxTemperature, formattedMinTemperature;
+        String description, formattedMaxTemperature, formattedMinTemperature, formattedDate;
         double maxTemp, minTemp;
+        long date;
 
         if (mCursor.moveToPosition(position)) {
             weatherId = mCursor.getInt(INDEX_WEATHER_ID);
@@ -104,6 +108,8 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
             minTemp = mCursor.getDouble(INDEX_MIN_TEMP);
             formattedMaxTemperature = Utility.formatTemperature(mContext, maxTemp, isMetric);
             formattedMinTemperature = Utility.formatTemperature(mContext, minTemp, isMetric);
+            date = mCursor.getLong(INDEX_DATE);
+            formattedDate = Utility.getFriendlyDayString(mContext, date);
         } else {
             return null;
         }
@@ -114,7 +120,7 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
         // Get the layout for the App Widget and attach an on-click listener
         // to the button
-        RemoteViews views = new RemoteViews(mContext.getPackageName(), layoutId);
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.widget_detail_list);
 
         views.setOnClickPendingIntent(R.id.widget_frame, pendingIntent);
 
@@ -122,6 +128,7 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
         views.setTextViewText(R.id.widget_high_textview, formattedMaxTemperature);
         views.setTextViewText(R.id.widget_low_textview, formattedMinTemperature);
         views.setTextViewText(R.id.widget_description_textview, description);
+        views.setTextViewText(R.id.widget_date_textview, formattedDate);
 
         return views;
     }

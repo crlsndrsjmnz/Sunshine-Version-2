@@ -106,11 +106,11 @@ public class ForecastWidgetService extends IntentService {
             int layoutId;
 
             if (widgetWidth >= largeWidth) {
-                layoutId = R.layout.forecast_widget_large;
+                layoutId = R.layout.widget_forecast_large;
             } else if (widgetWidth >= defaultWidth) {
-                layoutId = R.layout.forecast_widget;
+                layoutId = R.layout.widget_forecast;
             } else {
-                layoutId = R.layout.forecast_widget_small;
+                layoutId = R.layout.widget_forecast_small;
             }
 
             // Get the layout for the App Widget and attach an on-click listener
