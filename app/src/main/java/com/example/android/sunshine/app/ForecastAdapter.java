@@ -133,7 +133,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ViewHo
                 weatherDescription));
 
         long date = mCursor.getLong(ForecastFragment.COL_WEATHER_DATE);
-        viewHolder.mDateView.setText(Utility.getFriendlyDayString(mContext, date));
+        viewHolder.mDateView.setText(Utility.getFriendlyDayString(mContext, date, false));
         viewHolder.mDate = date;
 
         viewHolder.mDescriptionView.setText(weatherDescription);

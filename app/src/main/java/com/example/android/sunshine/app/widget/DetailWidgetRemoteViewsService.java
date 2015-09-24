@@ -1,23 +1,36 @@
 package com.example.android.sunshine.app.widget;
 
-import android.app.PendingIntent;
+import android.annotation.TargetApi;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Binder;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.AdapterView;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import com.example.android.sunshine.app.MainActivity;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
+import com.example.android.sunshine.app.DetailFragment;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by Carlos on 9/22/2015.
  */
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class DetailWidgetRemoteViewsService extends RemoteViewsService {
+
+    private static final String LOG_TAG = DetailWidgetRemoteViewsService.class.getSimpleName();
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
@@ -41,7 +54,7 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     private static final int INDEX_MIN_TEMP = 3;
     private static final int INDEX_DATE = 4;
 
-    private static final String LOG_TAG = ForecastWidgetService.class.getSimpleName();
+    private static final String LOG_TAG = DetailWidgetRemoteViewsFactory.class.getSimpleName();
     private Context mContext;
     private int mAppWidgetId;
     private Cursor mCursor;
@@ -58,25 +71,36 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
+
+        if (mCursor != null) {
+            mCursor.close();
+        }
+
         String locationSetting = Utility.getPreferredLocation(mContext);
 
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                 locationSetting, System.currentTimeMillis());
 
-        mCursor = mContext.getContentResolver().query(
-                weatherForLocationUri,
-                FORECAST_COLUMNS,
-                null,
-                null,
-                sortOrder);
+        final long token = Binder.clearCallingIdentity();
+        try {
+            mCursor = mContext.getContentResolver().query(
+                    weatherForLocationUri,
+                    FORECAST_COLUMNS,
+                    null,
+                    null,
+                    sortOrder);
+        } finally {
+            Binder.restoreCallingIdentity(token);
+        }
     }
 
     @Override
     public void onDestroy() {
         if (mCursor != null) {
             mCursor.close();
+            mCursor = null;
         }
     }
 
@@ -93,38 +117,74 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
     @Override
     public RemoteViews getViewAt(int position) {
 
+        if (position == AdapterView.INVALID_POSITION ||
+                mCursor == null || !mCursor.moveToPosition(position)) {
+            return null;
+        }
+
         int weatherId, weatherArtResourceId, widgetWidth;
         boolean isMetric;
         String description, formattedMaxTemperature, formattedMinTemperature, formattedDate;
         double maxTemp, minTemp;
         long date;
 
-        if (mCursor.moveToPosition(position)) {
-            weatherId = mCursor.getInt(INDEX_WEATHER_ID);
-            isMetric = Utility.isMetric(mContext);
-            weatherArtResourceId = Utility.getArtResourceForWeatherCondition(weatherId);
-            description = mCursor.getString(INDEX_SHORT_DESC);
-            maxTemp = mCursor.getDouble(INDEX_MAX_TEMP);
-            minTemp = mCursor.getDouble(INDEX_MIN_TEMP);
-            formattedMaxTemperature = Utility.formatTemperature(mContext, maxTemp, isMetric);
-            formattedMinTemperature = Utility.formatTemperature(mContext, minTemp, isMetric);
-            date = mCursor.getLong(INDEX_DATE);
-            formattedDate = Utility.getFriendlyDayString(mContext, date);
-        } else {
-            return null;
+        weatherId = mCursor.getInt(INDEX_WEATHER_ID);
+        isMetric = Utility.isMetric(mContext);
+
+
+        weatherArtResourceId = Utility.getArtResourceForWeatherCondition(weatherId);
+        Bitmap weatherIconBitmap = null;
+        if (!Utility.usingLocalGraphics(mContext)) {
+            String weatherArtResourceUrl = Utility.getArtUrlForWeatherCondition(
+                    mContext, weatherId);
+            try {
+                weatherIconBitmap = Glide.with(mContext)
+                        .load(weatherArtResourceUrl)
+                        .asBitmap()
+                        .error(weatherArtResourceId)
+                        .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                        .get();
+            } catch (InterruptedException | ExecutionException e) {
+                Log.e(LOG_TAG, "Error retrieving large icon from " + weatherArtResourceUrl, e);
+            }
         }
 
+        description = mCursor.getString(INDEX_SHORT_DESC);
+        maxTemp = mCursor.getDouble(INDEX_MAX_TEMP);
+        minTemp = mCursor.getDouble(INDEX_MIN_TEMP);
+        formattedMaxTemperature = Utility.formatTemperature(mContext, maxTemp, isMetric);
+        formattedMinTemperature = Utility.formatTemperature(mContext, minTemp, isMetric);
+        date = mCursor.getLong(INDEX_DATE);
+        formattedDate = Utility.getFriendlyDayString(mContext, date, true);
+
+        String locationSetting = Utility.getPreferredLocation(mContext);
+
         // Create an Intent to launch ExampleActivity
-        Intent widgetIntent = new Intent(mContext, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, widgetIntent, 0);
+        final Intent widgetIntent = new Intent();
+
+        Uri dateUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                locationSetting, date);
+
+        Bundle args = new Bundle();
+        args.putParcelable(DetailFragment.FORECAST_URI, dateUri);
+        widgetIntent.putExtras(args);
 
         // Get the layout for the App Widget and attach an on-click listener
         // to the button
         RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.widget_detail_list);
 
-        views.setOnClickPendingIntent(R.id.widget_frame, pendingIntent);
+        //views.setOnClickPendingIntent(R.id.widget_frame, pendingIntent);
+        views.setOnClickFillInIntent(R.id.widget_frame, widgetIntent);
 
-        views.setImageViewResource(R.id.widget_item_icon, weatherArtResourceId);
+        if (weatherIconBitmap != null)
+            views.setImageViewBitmap(R.id.widget_item_icon, weatherIconBitmap);
+        else
+            views.setImageViewResource(R.id.widget_item_icon, weatherArtResourceId);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+            setRemoteContentDescription(views, description);
+        }
+
         views.setTextViewText(R.id.widget_high_textview, formattedMaxTemperature);
         views.setTextViewText(R.id.widget_low_textview, formattedMinTemperature);
         views.setTextViewText(R.id.widget_description_textview, description);
@@ -145,6 +205,13 @@ class DetailWidgetRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public long getItemId(int position) {
+        if (mCursor.moveToPosition(position))
+            return mCursor.getLong(INDEX_WEATHER_ID);
         return position;
+    }
+
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
+    private void setRemoteContentDescription(RemoteViews views, String description) {
+        views.setContentDescription(R.id.widget_item_icon, description);
     }
 }

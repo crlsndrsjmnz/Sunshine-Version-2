@@ -89,9 +89,10 @@ public class Utility {
      *
      * @param context Context to use for resource localization
      * @param dateInMillis The date in milliseconds
+     * @param abbreviatedMonth boolean to indicate wheather or not to return the full month string
      * @return a user-friendly representation of the date.
      */
-    public static String getFriendlyDayString(Context context, long dateInMillis) {
+    public static String getFriendlyDayString(Context context, long dateInMillis, boolean abbreviatedMonth) {
         // The day string for forecast uses the following logic:
         // For today: "Today, June 8"
         // For tomorrow:  "Tomorrow"
@@ -112,7 +113,7 @@ public class Utility {
             return String.format(context.getString(
                     formatId,
                     today,
-                    getFormattedMonthDay(context, dateInMillis)));
+                    getFormattedMonthDay(context, dateInMillis, abbreviatedMonth)));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
             return getDayName(context, dateInMillis);
@@ -138,7 +139,7 @@ public class Utility {
         return String.format(context.getString(
                 formatId,
                 day,
-                getFormattedMonthDay(context, dateInMillis)));
+                getFormattedMonthDay(context, dateInMillis, false)));
     }
 
     /**
@@ -177,11 +178,17 @@ public class Utility {
      *                in Utility.DATE_FORMAT
      * @return The day in the form of a string formatted "December 6"
      */
-    public static String getFormattedMonthDay(Context context, long dateInMillis ) {
+    public static String getFormattedMonthDay(Context context, long dateInMillis, boolean abbreviatedMonth) {
         Time time = new Time();
         time.setToNow();
         SimpleDateFormat dbDateFormat = new SimpleDateFormat(Utility.DATE_FORMAT);
-        SimpleDateFormat monthDayFormat = new SimpleDateFormat("MMMM dd");
+        SimpleDateFormat monthDayFormat;
+
+        if (abbreviatedMonth)
+            monthDayFormat = new SimpleDateFormat("MMM dd");
+        else
+            monthDayFormat = new SimpleDateFormat("MMMM dd");
+
         String monthDayString = monthDayFormat.format(dateInMillis);
         return monthDayString;
     }

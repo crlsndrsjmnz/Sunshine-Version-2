@@ -58,6 +58,7 @@ public class ForecastFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String FORECAST_LIST_POSITION = "FORECAST_LIST_POSITION";
+    public static final String FORECAST_AUTOSELECT = "FORECAST_AUTOSELECT";
 
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
     // must change.
@@ -108,6 +109,10 @@ public class ForecastFragment extends Fragment
 
         if (mForecastAdapter != null)
             mForecastAdapter.setSinglePaneLayout(mSinglePaneLayout);
+    }
+
+    public void disableAutoSelectView() {
+        this.mAutoSelectView = false;
     }
 
     @Override

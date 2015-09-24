@@ -552,17 +552,25 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         ? resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
                         : resources.getDimensionPixelSize(R.dimen.notification_large_icon_default);
 
-                Bitmap largeIcon;
-                try {
-                    largeIcon = Glide.with(context)
-                            .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
-                            .asBitmap()
-                            .error(Utility.getArtResourceForWeatherCondition(weatherId))
-                            .into(largeIconWidth, largeIconWidth)
-                            .get();
-                } catch (InterruptedException | ExecutionException e) {
+                Bitmap largeIcon = null;
+                if (!Utility.usingLocalGraphics(mContext)) {
+                    String weatherArtResourceUrl = Utility.getArtUrlForWeatherCondition(context, weatherId);
+                    try {
+                        largeIcon = Glide.with(context)
+                                .load(weatherArtResourceUrl)
+                                .asBitmap()
+                                .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                                .into(largeIconWidth, largeIconWidth)
+                                .get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        Log.e(LOG_TAG, "Error retrieving large icon from " + weatherArtResourceUrl, e);
+
+                        largeIcon = BitmapFactory.decodeResource(resources,
+                                Utility.getArtResourceForWeatherCondition(weatherId));
+                    }
+                } else {
                     largeIcon = BitmapFactory.decodeResource(resources,
-                        Utility.getArtResourceForWeatherCondition(weatherId));
+                            Utility.getArtResourceForWeatherCondition(weatherId));
                 }
 
                 NotificationCompat.Builder mBuilder =

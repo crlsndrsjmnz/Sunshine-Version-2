@@ -129,9 +129,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         if (savedInstanceState != null) {
             mUri = savedInstanceState.getParcelable(FORECAST_URI);
-
             getLoaderManager().restartLoader(WEATHER_LOADER_ID, null, this);
         } else {
+
             Bundle arguments = getArguments();
             if (arguments != null) {
                 mUri = arguments.getParcelable(FORECAST_URI);

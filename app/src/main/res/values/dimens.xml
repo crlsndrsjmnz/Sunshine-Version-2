@@ -55,9 +55,15 @@
     <dimen name="widget_padding_vertical">4dp</dimen>
     <dimen name="widget_padding_horizontal">8dp</dimen>
 
-    <dimen name="widget_detail_default_height">40dp</dimen>
-    <dimen name="widget_detail_default_width">110dp</dimen>
+    <dimen name="widget_detail_default_height">180dp</dimen>
+    <dimen name="widget_detail_default_width">250dp</dimen>
     <dimen name="widget_detail_min_height">@dimen/widget_detail_default_height</dimen>
-    <dimen name="widget_detail_min_width">40dp</dimen>
+    <dimen name="widget_detail_min_width">220dp</dimen>
+
+    <dimen name="widget_main_text_size">14sp</dimen>
+    <dimen name="widget_sub_text_size">18sp</dimen>
+    <dimen name="widget_text_width">28dp</dimen>
+
+    <dimen name="widget_temperature_space">4dp</dimen>
 
 </resources>

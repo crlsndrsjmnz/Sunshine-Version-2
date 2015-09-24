@@ -86,6 +86,9 @@ public class MainActivity extends ActionBarActivity
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+        Intent intent = getIntent();
+        boolean autoSelectView = true;
+
         if (findViewById(R.id.weather_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -95,18 +98,40 @@ public class MainActivity extends ActionBarActivity
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
+
+                DetailFragment detailFragment;
+                if (intent.getExtras() != null && intent.getExtras().containsKey(DetailFragment.FORECAST_URI)) {
+                    Uri uri = getIntent().getParcelableExtra(DetailFragment.FORECAST_URI);
+                    detailFragment = DetailFragment.newInstance(uri);
+                    autoSelectView = false;
+                } else {
+                    detailFragment = new DetailFragment();
+                }
+
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.weather_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                        .replace(R.id.weather_detail_container, detailFragment, DETAILFRAGMENT_TAG)
                         .commit();
             }
         } else {
             mTwoPane = false;
             getSupportActionBar().setElevation(0f);
+
+            if (intent.getExtras() != null && intent.getExtras().containsKey(DetailFragment.FORECAST_URI)) {
+                Bundle args = new Bundle();
+                args.putParcelable(DetailFragment.FORECAST_URI, getIntent().getParcelableExtra(DetailFragment.FORECAST_URI));
+
+                intent = new Intent(this, DetailActivity.class);
+                intent.putExtras(args);
+
+                startActivity(intent);
+            }
         }
 
         ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
         if (null != ff) {
             ff.setSinglePaneLayout(!mTwoPane);
+            if (!autoSelectView)
+                ff.disableAutoSelectView();
         }
 
         SunshineSyncAdapter.initializeSyncAdapter(this);
@@ -293,9 +318,6 @@ public class MainActivity extends ActionBarActivity
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-
-                Log.d(LOG_TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!! registering GCM");
-
                 String msg = "";
                 try {
                     if (mGcm == null) {
