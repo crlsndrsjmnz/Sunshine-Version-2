@@ -34,6 +34,7 @@ import com.example.android.sunshine.app.DetailFragment;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -80,6 +81,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int INDEX_SHORT_DESC = 3;
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     private final Context mContext;
+
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mContext = context;
@@ -281,7 +283,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Take the String representing the complete forecast in JSON Format and
      * pull out the data we need to construct the Strings needed for the wireframes.
-     * <p/>
+     * <p>
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
@@ -445,7 +447,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
                 Log.d(LOG_TAG, "%%%%%%%%%%%%%%%%%%%% SunshineSyncAdapter Deleted " + rows + " rows");
 
-                updateWidget(mContext);
+                updateWidget();
+                updateMuzei();
                 notifyWeather();
             }
 
@@ -622,12 +625,21 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         editor.commit();
     }
 
-    public void updateWidget(Context context) {
+    public void updateWidget() {
         Intent intent = new Intent(ACTION_DATA_UPDATED);
-        context.sendBroadcast(intent);
+        mContext.sendBroadcast(intent);
+
+    }
+
+    private void updateMuzei() {
+        // Muzei is only compatible with Jelly Bean MR1+ devices, so there's no need to update the
+        // Muzei background on lower API level devices
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+            mContext.startService(new Intent(ACTION_DATA_UPDATED).setClass(mContext, WeatherMuzeiSource.class));
     }
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
-    public @interface LocationStatus {}
+    public @interface LocationStatus {
+    }
 }
